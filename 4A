@@ -1,0 +1,53 @@
+ -- Mark Fuller
+-- Assignment 4
+
+-- 1. Find the first name and last name (as one field) and debut date of people whose
+-- final game was at least 10,000 days after their debut. Order by the date difference
+
+select concat(nameFirst,' ',nameLast) as Name, debut
+from People
+where abs(datediff(finalGame, debut)) >= 10000
+order by abs(datediff(finalGame, debut));
+
+--2. For each pitcher, find the number of career home runs allowed. Limit the number
+-- of results to pitchers with at least 4000 innings pitched (12000 IPOuts). Order
+-- the output by number of hr allowed (desc).
+
+select playerID, sum(HR) as Allowed
+from pitching
+group by playerID
+having sum(IPOuts) > 12000
+order by Allowed;
+
+-- 3. Find the playerid, average number of strikeouts and average number of walks
+-- per year for the pitchers with playerid starting with 'gibs'
+
+select playerID, avg(SO) as Average_Strike_Outs, avg(W) as Average_Walks, yearID as year
+from Pitching
+where playerID like 'gibs%'
+group by playerid, yearID;
+
+--4. Find the fewest plate appearances (ab+bb+sh+sf) in 1893, 1953 and 2013 for players
+-- with more than 16 games played. Output the yearid and the number of PAs.
+
+select min(ab+bb+sh+sf), playerId
+from batting
+where yearID in (1893, 1953, 2013) and G > 16
+group by playerID;
+
+-- 5. Find the population standard deviation of strikeouts for pitchers in 2018 with
+-- at least 200 innings pitched (600 IPOuts).
+
+select stddev(so) from pitching where IPOuts >= 600 AND yearID = 2018;
+
+--The modern era of baseball starts in 1920. For pitchers, WHIP is the number of
+-- walks + hits per inning pitched. Output the playerId and career WHIP for each
+-- pitcher with at least 20 seasons. Order the output by WHIP.
+
+select playerId, (sum(W) + sum(H)) / (sum(IPouts / 3)) as WHIP
+from pitching
+where yearID >= 1920
+group by playerId
+having count(*) > 20 order by WHIP;
+
+
