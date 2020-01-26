@@ -1,0 +1,23 @@
+Assignment 1
+
+1. In the baseball database, how many tables are there?
+        show tables;    
+            27
+2. List at least two attributes (including the table) that can hold a string of 20 characters.
+        describe Person;
+            Person.birthCity -> varchar(50)
+            Person.birthState -> varchar(30)
+3. List at least one attribute (including the table) that are of the date type.
+        describe Person;
+                Person.debut                 
+4. List at least two attributes (including the table) that can hold the integer 1,000,000.
+        describe Person;
+                Person.retroID
+                Person.bbrefID
+5. List an attribute (include the table) that cannot be Null.
+        describe Person;
+                Person.playerID
+6. List two tables with a many-to-one relationship between them. Indicate the cardinality by drawing an arrow to the ``one'' table. 
+        Many -> One
+                Team.teamID -> Batting.teamID
+                People.playerID -> Batting.playerID

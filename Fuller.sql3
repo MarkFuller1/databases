@@ -1,0 +1,80 @@
+-- Assignment 3 
+-- Mark Fuller
+--1. Find the distinct lgId (league id) in Batting 
+select 
+  distinct lgID 
+from 
+  Batting 
+  
+-- 2. Find the distinct number of plate appearances (pa=ab+bb+ibb+hbp+sf+sh) for players in Batting in 1893, 1953 or 2013. Order by pa desc. 
+select 
+  distinct ab + bb + ibb + hbp + sf + sh as pa 
+from 
+  Batting 
+where 
+  yearID = '1893' 
+  or yearID = '1953' 
+  or yearID = '2013' 
+order by 
+  pa desc;
+
+-- 3. Repeat the previous query, but replace null values with 0. 
+select 
+  distinct coalesce(ab + bb + ibb + hbp + sf + sh, 0) as pa 
+from 
+  Batting 
+where 
+  yearID = '1893' 
+  or yearID = '1953' 
+  or yearID = '2013' 
+order by 
+  pa desc;
+
+-- 4. For the 2013 season, find all players with at least 50 atbats who hit at least 40 homeruns, batted .340 or more (h/ab) and drove in 130 or more runs. For each such player, give them a category. A player meeting all three criteria is 'Triple Crown'. A player meeting any two of the criteria is 'All-Star'. A player meeting only 1 criteria is 'Hopeful'. Output the playerId and the category. 
+select 
+  playerID, 
+  case when HR >= 40 
+  AND H / AB >=.340 
+  AND R >= 130 then 'Triple Crown' when (
+    HR >= 40 
+    AND H / AB >=.340
+  ) 
+  OR (
+    H / AB >=.340 
+    AND R >= 130
+  ) 
+  OR (
+    HR >= 40 
+    AND R >= 130
+  ) then 'All-Star' else 'Hopeful' end as rank 
+from 
+  Batting 
+where 
+  AB >= 50 
+  AND (
+    HR >= 40 
+    OR (h / ab) >=.340 
+    OR R >= 130
+  ) 
+  AND yearID = 2013;
+
+-- 4. Find the first name and last name (as one field) and debut date of people whose final game was 10,000 days after their debut. Order by the date difference. 
+select 
+  name, 
+  debut 
+from 
+  (
+    select 
+      concat(nameFirst, ' ', nameLast) as name, 
+      debut, 
+      datediff(finalGame, debut) as career 
+    from 
+      People 
+    order by 
+      career
+  ) as computed 
+where 
+  career >= 10000 
+order by 
+  career;
+

@@ -1,0 +1,19 @@
+--Assignment 2
+
+--Mark Fuller
+
+--1. Find the playerID and last name of people with an unknown birth year and unknown first name.
+        SELECT playerID, nameLast FROM People WHERE birthYear IS NULL AND nameFirst IS NULL;
+
+--2. Using the IN construct, find the playerId of pitchers not in the AL or NL who pitched after 1901.
+        SELECT playerID FROM Pitching WHERE lgID NOT IN ('AL' , 'NL') AND yearID > 1901;
+
+--3. Find the playerID of batters who played in the AL before 1901.
+        SELECT playerID from Batting WHERE lgID = 'AL' AND yearID < 1901;
+
+--4. Find the first name and last name of people in the database with a playerID that starts with 'ruth'.
+        SELECT nameFirst, nameLast FROM People WHERE playerID LIKE 'ruth%';
+
+--5. Find the playerID of people whose debut was in 1918. 
+        SELECT playerID FROM People WHERE debut BETWEEN '1918-01-01' AND '1918-12-31';
+
