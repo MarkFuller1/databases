@@ -4,7 +4,7 @@
 -- 1. Find the names of all pitchers who have won more than 30 games in 
 -- a season since 1940.
 
-select concat(nameFirst,' ',nameLast) as Name
+select concat(nameFirst,' ',nameLast) as Name, Pitching.W
 from People, Pitching 
 where Pitching.yearid >= 1940 
 and Pitching.playerid = People.playerid
