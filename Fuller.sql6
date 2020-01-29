@@ -87,7 +87,14 @@ and A.teamId = T.teamId
 and H.yearId = T.yearId
 and T.franchId = TF.franchid
 and TF.active = 'Y'
-group by TF.franchId;
+group by TF.franchName;
+
+select franchName, count(*)
+from HallOfFame as H join Appearances as A using(yearId, playerId) 
+join Teams as T using(teamId)
+join TeamsFranchises as TF using(franchID)
+where TF.active = 'Y'
+group by TF.franchName;
 
 SELECT`TABLE_SCHEMA`, `table_name`,c1.`column_name`,c2.`column_name` FROM `COLUMNS` C1
 INNER JOIN `COLUMNS` C2 USING(`TABLE_SCHEMA`, `TABLE_NAME`)
