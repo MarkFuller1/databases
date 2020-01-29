@@ -1,58 +1,74 @@
--- Mark Fuller
--- Assignments 5
-
--- 1. Find the names of all pitchers who have won more than 30 games in 
+- Mark Fuller -- Assignments 5
+-- 1. Find the names of all pitchers who have won more than 30 games in
 -- a season since 1940.
-
-select concat(nameFirst,' ',nameLast) as Name, Pitching.W
-from People, Pitching 
-where Pitching.yearid >= 1940 
-and Pitching.playerid = People.playerid
-and Pitching.W > 30;
-
--- 2. Find the number of World Series wins by each Franshise. 
--- Output the name of the franchise with the total.
-
-select teamsfranchises.franchName, count(*) as Ws_wins
-from teamsfranchises, teams
-where teamsfranchises.franchid = teams.franchid 
-    and teams.wswin = 'Y'
-group by teams.franchid;
-
-
--- 3 For each player on the 1955 Detroit Tigers (DET), output the 
--- playerid, the number of games played in the OF and the total 
--- of the games played at all 3 OF positions. Ignore players who 
--- did not play in the OF.
-
-select fielding.playerid, sum(gcf) + sum(glf) + sum(grf) as Games_in_OF, sum(gcf) as Games_in_CF, sum(glf) as Games_in_LF, sum(grf) as Games_in_RF
-from fieldingof, fielding
-where fielding.yearid = 1955 
-    and teamid = 'DET' 
-    and fielding.playerid = fieldingof.playerid
-    and fieldingof.yearid = fielding.yearid
-group by playerid;
-
--- 4. Find the names of all players who played on the 2018 world 
--- series champion. DO NOT hardcode the teamid.
-
-select concat(nameFirst,' ',nameLast) as name
-from teams, people, batting
-where teams.WSWin = 'Y' 
-    and teams.teamid = batting.teamid 
-    and batting.playerid = people.playerid 
-    and batting.yearid = 2018 
-    and teams.yearid = batting.yearid ;
-
--- 5. Find the playerid and season batting average (h/ab) for 
--- every starter in the 2018 All Star game.
-
-select batting.playerid, batting.h/batting.ab as batting_average
-from allstarfull, batting
-where allstarfull.yearid = 2018 
-    and allstarfull.playerid = batting.playerid 
-    and batting.yearid = 2018
-    and allstarfull.startingPos is not null
-    group by allstarfull.playerid;
-
-
+select
+  concat(nameFirst, ' ', nameLast) as Name,
+  Pitching.W
+from
+  People,
+  Pitching
+where
+  Pitching.yearid >= 1940
+  and Pitching.playerid = People.playerid
+  and Pitching.W > 30;
+-- 2. Find the number of World Series wins by each Franshise.
+  -- Output the name of the franchise with the total.
+select
+  TeamsFranchises.franchName,
+  count(*) as Ws_wins
+from
+  TeamsFranchises,
+  Teams
+where
+  TeamsFranchises.franchid = Teams.franchid
+  and Teams.wswin = 'Y'
+group by
+  TeamsFranchises.franchName;
+-- 3 For each player on the 1955 Detroit Tigers (DET), output the
+  -- playerid, the number of games played in the OF and the total
+  -- of the games played at all 3 OF positions. Ignore players who
+  -- did not play in the OF.
+select
+  Fielding.playerid,
+  sum(gcf) + sum(glf) + sum(grf) as Games_in_OF,
+  sum(gcf) as Games_in_CF,
+  sum(glf) as Games_in_LF,
+  sum(grf) as Games_in_RF
+from
+  FieldingOF,
+  Fielding
+where
+  Fielding.yearid = 1955
+  and Fielding.teamid = 'DET'
+  and FieldingOF.yearid = Fielding.yearid
+  and Fielding.playerid = FieldingOF.playerid
+  and Fielding.POS = 'OF'
+group by
+  playerid;
+-- 4. Find the names of all players who played on the 2018 world
+  -- series champion. DO NOT hardcode the teamid.
+select
+  concat(nameFirst, ' ', nameLast) as name
+from
+  Teams,
+  People,
+  Batting
+where
+  Teams.WSWin = 'Y'
+  and Teams.teamid = Batting.teamid
+  and Batting.playerid = People.playerid
+  and Batting.yearid = 2018
+  and Teams.yearid = Batting.yearid;
+-- 5. Find the playerid and season Batting average (h/ab) for
+  -- every starter in the 2018 All Star game.
+select
+  Batting.playerid,
+  Batting.h / Batting.ab as Batting_average
+from
+  AllstarFull,
+  Batting
+where
+  AllstarFull.yearid = 2018
+  and AllstarFull.playerid = Batting.playerid
+  and Batting.yearid = 2018
+  and AllstarFull.startingPos is not null;
