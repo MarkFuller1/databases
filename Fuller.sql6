@@ -1,0 +1,95 @@
+-- Mark Fuller
+-- Assignment 6
+
+-- 1 The Hall of Fame contains the greatest players in the history 
+-- of baseball. The first class was inducted in 1936. Find the 
+-- names of the first players inducted (HallOfFame.inducted = 'y'
+-- and HallOfFame.yearId = 1936).
+
+select concat(nameFirst,' ',nameLast) as name 
+from HallOfFame H join People using(playerid)
+where H.inducted = 'Y';
+
+select concat(nameFirst,' ',nameLast) as name
+from HallOfFame as H, People
+where People.playerid = H.playerid 
+and H.inducted = 'Y';
+
+-- 2 Find the names and career batting averages of the first 
+-- players inducted into the Hall of Fame.
+
+select concat(nameFirst,' ',nameLast) as name, 
+    sum(B.h) / sum(B.ab) as batting_avg
+from Batting as B join HallOfFame as H using(playerid) 
+join People as P using(playerid)
+where H.inducted = 'Y'
+    and H.yearId = 1936
+group by playerid;
+
+select concat(nameFirst,' ',nameLast) as name, 
+    sum(B.h) / sum(B.ab) as batting_avg
+from Batting as B, HallOfFame as H, People as P
+where P.playerid = H.playerid
+    and H.playerid = B.playerid
+    and H.inducted = 'Y'
+    and H.yearId = 1936
+group by B.playerid;
+
+-- 3 The second Hall of Fame class (1937) included non-players 
+-- (People.debut is NULL). Output the names of all non-players 
+-- in the Hall of Fame.
+
+select concat(nameFirst,' ',nameLast) as name
+from HallOfFame as H join People as P using(playerid)
+where H.yearId = 1937
+and P.debut is null;
+
+select concat(nameFirst,' ',nameLast) as name
+from HallOfFame as H, People as P
+where H.yearId = 1937
+and H.playerId = P.playerId
+and P.debut is null;
+
+-- 4 Find the names and career wins for pitchers inducted 
+-- into the Hall of Fame. A player is considered a pitcher 
+-- if they have more than 3000 career IPOUTS. Order by Career
+-- wins descending.
+
+select concat(nameFirst,' ',nameLast) as name, 
+    sum(w) as career_wins
+from HallOfFame as H join People using(playerid) 
+    join Pitching as P using(playerid)
+where H.inducted = 'Y'
+group by playerid
+having sum(ipouts) > 3000
+order by sum(w) desc;
+
+select concat(nameFirst,' ',nameLast) as name, 
+    sum(w) as career_wins
+from HallOfFame as H, People, Pitching as P
+where H.playerId = People.playerId
+and People.playerId = P.playerId
+and H.inducted = 'Y'
+group by People.playerid
+having sum(ipouts) > 3000
+order by sum(w) desc;
+
+-- 5 For each active franchise (TeamsFranchises.active = 'y'), 
+-- find the number of HallOfFame players who ever played for
+-- the franchise. Include the name of the franchise in the 
+-- output.
+
+select franchName, count(*)
+from HallOfFame as H, Teams as T, TeamsFranchises as TF, Appearances as A
+where H.playerId = A.playerId
+and H.yearId = A.yearid
+and A.teamId = T.teamId
+and H.yearId = T.yearId
+and T.franchId = TF.franchid
+and TF.active = 'Y'
+group by TF.franchId;
+
+SELECT`TABLE_SCHEMA`, `table_name`,c1.`column_name`,c2.`column_name` FROM `COLUMNS` C1
+INNER JOIN `COLUMNS` C2 USING(`TABLE_SCHEMA`, `TABLE_NAME`)
+WHERE c1.`column_name` = 'teamId'
+AND c2.`column_name` = 'franchId';
