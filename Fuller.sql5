@@ -63,7 +63,7 @@ where
   -- every starter in the 2018 All Star game.
 select
   Batting.playerid,
-  Batting.h / Batting.ab as Batting_average
+  sum(Batting.h) / sum(Batting.ab) as Batting_average
 from
   AllstarFull,
   Batting
@@ -71,4 +71,5 @@ where
   AllstarFull.yearid = 2018
   and AllstarFull.playerid = Batting.playerid
   and Batting.yearid = 2018
-  and AllstarFull.startingPos is not null;
+  and AllstarFull.startingPos is not null
+  group by Batting.playerid;
