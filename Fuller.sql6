@@ -8,12 +8,15 @@
 
 select concat(nameFirst,' ',nameLast) as name 
 from HallOfFame H join People using(playerid)
-where H.inducted = 'Y';
+where H.inducted = 'Y' 
+and H.yearid = 1936;
 
 select concat(nameFirst,' ',nameLast) as name
 from HallOfFame as H, People
 where People.playerid = H.playerid 
-and H.inducted = 'Y';
+and H.inducted = 'Y'
+and H.yearid = 1936;
+
 
 -- 2 Find the names and career batting averages of the first 
 -- players inducted into the Hall of Fame.
@@ -95,8 +98,3 @@ join Teams as T using(teamId)
 join TeamsFranchises as TF using(franchID)
 where TF.active = 'Y'
 group by TF.franchName;
-
-SELECT`TABLE_SCHEMA`, `table_name`,c1.`column_name`,c2.`column_name` FROM `COLUMNS` C1
-INNER JOIN `COLUMNS` C2 USING(`TABLE_SCHEMA`, `TABLE_NAME`)
-WHERE c1.`column_name` = 'teamId'
-AND c2.`column_name` = 'franchId';
