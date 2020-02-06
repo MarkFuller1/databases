@@ -64,8 +64,42 @@ INTERSECT
 -- 4. Find the playerid of players who played for both the Anaheim 
 -- Angels and the Miami Marlins. Note! It can be in different seasons. 
 -- Note! I only want one attribute in the result set.
+SELECT
+    DISTINCT playerID
+FROM
+    Appearances marlins
+    JOIN Appearances angels USING(playerID)
+WHERE
+    marlins.teamId = 'MIA'
+    AND angels.teamId = 'ANA';
+
 -- 5. Find the number of players who hit more home runs in a stint 
 -- than Babe Ruth hit in a season for each season in Ruth's career. 
 -- Include years that Ruth hit the most as 0. Include the year in the 
 -- output. Don't worry about years in which Ruth had multiple stints 
 -- (he did not have any).
+SELECT
+    IF(playerID = 'ruthba01', 0, count(playerID)) AS babe_beaters,
+    yearID
+FROM
+    Batting other
+    JOIN (
+        SELECT
+            yearID,
+            HR
+        FROM
+            Batting
+        WHERE
+            playerID = 'ruthba01'
+    ) AS babe_record USING (yearID)
+WHERE
+    (
+        other.HR > babe_record.HR
+        AND other.playerID != 'ruthba01'
+    )
+    OR (
+        other.hr = babe_record.HR
+        AND other.playerID = 'ruthba01'
+    )
+GROUP BY
+    yearID;

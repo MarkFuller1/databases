@@ -56,12 +56,13 @@ FROM   (SELECT DISTINCT other.playerid AS player
         ORDER  BY other.yearid) AS babe_beaters; 
 
 -- And here is the query assuming no 
-SELECT Count(DISTINCT other.playerid) AS count 
+SELECT Count(DISTINCT other.playerid, other.stint) AS count 
 FROM   batting AS babe 
        JOIN batting AS other 
          ON ( other.yearid = babe.yearid 
               AND other.hr > babe.hr ) 
-WHERE  babe.playerid = 'ruthba01'; 
+WHERE  babe.playerid = 'ruthba01'
+group by other.yearID; 
 
 -- 4. Find the name of all people who did not appear in a 
 -- major league baseball game (they are not in the Appearances table). 
