@@ -5,7 +5,7 @@ USE baseball;
 -- 1. Using a subquery in the WHERE clause, find the names of the first 
 -- players inducted into the Hall of Fame.
 SELECT
-    concat(nameFirst, ' ', nameLast)
+    concat(nameFirst, ' ', nameLast) AS name
 FROM
     People,
     HallOfFame
@@ -16,12 +16,13 @@ WHERE
             MIN(yearid)
         FROM
             HallOfFame
-    );
+    )
+    AND HallOfFame.inducted = 'y';
 
 -- 2. Using a subquery in the WHERE clause, find the names of players 
 -- with 3000 or more career hits who are not in the Hall of Fame.
 SELECT
-    concat(nameFirst, ' ', nameLast)
+    concat(nameFirst, ' ', nameLast) name
 FROM
     People
 WHERE
@@ -30,13 +31,18 @@ WHERE
             Batting.playerID
         FROM
             Batting
-            JOIN HallOfFame USING(playerId)
-        WHERE
-            inducted = 'n'
         GROUP BY
             playerId
         HAVING
             sum(Batting.H) > 3000
+    )
+    AND People.playerID NOT IN (
+        SELECT
+            playerId
+        FROM
+            HallOfFame
+        WHERE
+            inducted = 'y'
     );
 
 -- 3. Using a Set operator, find the playerid of players with 3000 or 
