@@ -1,0 +1,118 @@
+-- Mark Fuller
+-- Assignment 8 
+USE baseball;
+
+-- 1. Using a subquery in the WHERE clause, find the names of the first 
+-- players inducted into the Hall of Fame.
+SELECT
+    concat(nameFirst, ' ', nameLast) AS name
+FROM
+    People,
+    HallOfFame
+WHERE
+    HallOfFame.playerId = People.playerId
+    AND HallOfFame.yearId = (
+        SELECT
+            MIN(yearid)
+        FROM
+            HallOfFame
+    )
+    AND HallOfFame.inducted = 'y';
+
+-- 2. Using a subquery in the WHERE clause, find the names of players 
+-- with 3000 or more career hits who are not in the Hall of Fame.
+SELECT
+    concat(nameFirst, ' ', nameLast) name
+FROM
+    People
+WHERE
+    People.playerId IN (
+        SELECT
+            Batting.playerID
+        FROM
+            Batting
+        GROUP BY
+            playerId
+        HAVING
+            sum(Batting.H) > 3000
+    )
+    AND People.playerID NOT IN (
+        SELECT
+            playerId
+        FROM
+            HallOfFame
+        WHERE
+            inducted = 'y'
+    );
+
+-- 3. Using a Set operator, find the playerid of players with 3000 or 
+-- more career hits who are not in the Hall of Fame.
+(
+    SELECT
+        playerId
+    FROM
+        Batting
+    GROUP BY
+        Batting.playerID
+    HAVING
+        sum(Batting.H) >= 3000
+)
+INTERSECT
+(
+    SELECT
+        DISTINCT playerID
+    FROM
+        HallOfFame
+    WHERE
+        playerId NOT IN (
+            SELECT
+                playerID
+            FROM
+                HallOfFame
+            WHERE
+                inducted = 'y'
+        )
+);
+
+-- 4. Find the playerid of players who played for both the Anaheim 
+-- Angels and the Miami Marlins. Note! It can be in different seasons. 
+-- Note! I only want one attribute in the result set.
+SELECT
+    DISTINCT playerID
+FROM
+    Appearances marlins
+    JOIN Appearances angels USING(playerID)
+WHERE
+    marlins.teamId = 'MIA'
+    AND angels.teamId = 'ANA';
+
+-- 5. Find the number of players who hit more home runs in a stint 
+-- than Babe Ruth hit in a season for each season in Ruth's career. 
+-- Include years that Ruth hit the most as 0. Include the year in the 
+-- output. Don't worry about years in which Ruth had multiple stints 
+-- (he did not have any).
+SELECT
+    IF(playerID = 'ruthba01', 0, count(playerID)) AS babe_beaters,
+    yearID
+FROM
+    Batting other
+    JOIN (
+        SELECT
+            yearID,
+            HR
+        FROM
+            Batting
+        WHERE
+            playerID = 'ruthba01'
+    ) AS babe_record USING (yearID)
+WHERE
+    (
+        other.HR > babe_record.HR
+        AND other.playerID != 'ruthba01'
+    )
+    OR (
+        other.hr = babe_record.HR
+        AND other.playerID = 'ruthba01'
+    )
+GROUP BY
+    yearID;

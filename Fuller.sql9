@@ -1,0 +1,139 @@
+-- 1 Find the playerid with the most stints.
+SELECT
+    most_stint
+FROM
+    (
+        SELECT
+            playerid AS most_stint,
+            max(stint)
+        FROM
+            (
+                SELECT
+                    playerid,
+                    max(stint) AS stint
+                FROM
+                    batting
+                GROUP BY
+                    yearid
+            ) AS maxes
+    ) maxes;
+
+--2 Find all the players who were teammates with Babe Ruth 
+-- (playerid = 'ruthba01') between 1925 and 1927 (inclusive).
+-- You can assume players were teammates if they appeared on
+-- the same team on the same year. Output each playerid only 
+-- one time.
+SELECT
+    DISTINCT first_degree.playerid AS teammate
+FROM
+    appearances first_degree
+    JOIN appearances babe USING(yearID, teamId)
+WHERE
+    babe.playerId = 'ruthba01'
+    AND babe.yearID IN (1925, 1926, 1927)
+    AND first_degree.playerid != 'ruthba01';
+
+-- 3 Find all of the players who were teammates with a player 
+-- who was teammates with Babe Ruth between 1925 and 1927. 
+-- Output each playerid only one time.
+SELECT
+    DISTINCT second_degree.playerId
+FROM
+    appearances AS second_degree
+    JOIN appearances AS first_degree USING (yearID, teamId)
+WHERE
+    first_degree.playerId IN (
+        SELECT
+            first_degree.playerId
+        FROM
+            appearances first_degree
+            JOIN appearances babe USING (teamID, yearId)
+        WHERE
+            babe.playerId = 'ruthba01'
+            AND babe.yearID IN (1925, 1926, 1927)
+            AND first_degree.playerid != 'ruthba01'
+    )
+    AND second_degree.yearId IN (1925, 1926, 1927);
+
+-- 4 For each team, find the most home runs hit by a player 
+-- for each season. Output the teamid, the yearid, playerid and 
+-- home runs hit. Limit the results to NL teams since 2015.
+SELECT
+    teamId,
+    yearId,
+    playerId,
+    max(batt.hr) AS hr_count
+FROM
+    (
+        SELECT
+            playerid,
+            yearId,
+            teamId,
+            sum(hr) AS hr
+        FROM
+            batting
+        WHERE
+            lgid = 'NL'
+            AND yearId >= 2015
+        GROUP BY
+            playerid,
+            yearId,
+            teamId
+    ) batt
+GROUP BY
+    teamId,
+    yearid;
+
+-- 5 An intentional walk (ibb) occurs when a team intentionally 
+-- throws four pitches outside the strike zone letting the 
+-- batter safely go to first base. Since 2017, the manager 
+-- can order an intentional walk be given without throwing 
+-- any pitches. However, the intentional walk has not always 
+-- been an official stat. Prior to 1955, the ibb was not an 
+-- official stat. Find all of the MLB intentional walk leaders 
+-- for each year after 1954. Output the playerid, yearid and 
+-- their number of intentional walks. Order by the year.
+SELECT
+    playerid AS player,
+    a.ibb AS record,
+    a.yearid AS year
+FROM
+    (
+        SELECT
+            playerid,
+            yearId,
+            sum(ibb) AS ibb
+        FROM
+            batting
+        WHERE
+            yearId >= 1955
+        GROUP BY
+            playerid,
+            yearId
+    ) AS a
+    JOIN (
+        SELECT
+            max(ibb) ibb,
+            yearid
+        FROM
+            (
+                SELECT
+                    playerid,
+                    yearId,
+                    sum(ibb) AS ibb
+                FROM
+                    batting
+                WHERE
+                    yearId >= 1955
+                GROUP BY
+                    playerid,
+                    yearId
+            ) AS temp
+        GROUP BY
+            yearid
+    ) AS B
+WHERE
+    a.ibb = B.ibb
+    AND a.yearid = B.yearid
+ORDER BY
+    a.yearid;
