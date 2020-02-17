@@ -23,7 +23,7 @@ CREATE INDEX teamsindex ON teams(teamid);
  set difference of valid players and valid teams
  */
 SELECT
-    concat(nameFirst, ' ', nameLast)
+    concat(nameFirst, ' ', nameLast) as player_name
 FROM
     People AS p
 WHERE
@@ -45,7 +45,7 @@ EXCEPT
         WHERE
             a.playerid = p.playerid
             AND YEAR(p.finalgame) = 2018
-     ) );
+
 
 -- 2 Create the table PitchingAnalytics which contains the 
 -- playerid, yearid, stint and teamid of all pitchers.
