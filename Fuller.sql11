@@ -1,0 +1,48 @@
+-- Mark Fuller
+-- Assignment 11
+DROP DATABASE baseball;
+
+CREATE DATABASE baseball;
+
+USE baseball;
+
+\. C:\Users\MarkF\Desktop\databases\baseball.sql
+
+asdfasdf;
+
+-- Add a primary key for Pitching.
+ALTER TABLE
+    Pitching
+ADD
+    PRIMARY KEY (playerid, yearid, stint);
+
+-- Add an index for playerid on Pitching.
+CREATE INDEX supe ON Pitching(playerid, yearid, stint);
+
+-- Add a foreign key for playerid on Pitching to People
+ALTER TABLE
+    Pitching
+ADD
+    FOREIGN KEY (playerid) REFERENCES People(playerid);
+
+-- Create a view called TigerPitchers. It should consist 
+-- of active pitchers (those with stats from 2018) who 
+-- played on the Detroit Tigers (teamid = 'DET'). The 
+-- view should consist of playerid, yearid, stint and WHIP.
+CREATE VIEW TigerPitchers AS
+SELECT
+    playerID,
+    yearid,
+    3 *(sum(H) + sum(BB)) / sum(IPOUTS) AS WHIP
+FROM
+    pitching
+WHERE
+    yearid = '2018'
+    AND teamid = 'DET'
+GROUP BY
+    playerid,
+    yearid,
+    stint;
+
+-- Using your view, find the Tiger pitcher with 
+-- over 30 innings with the lowest WHIP.
