@@ -1,0 +1,35 @@
+-- Mark Fuller
+-- Assignmnet 13
+
+-- 1. Give an advantage for having users in your database;
+Users can be limited in their ability to operate on the database.
+If you are a compaby that has a large database with lots of data
+that you do not want changed, then you can give out accouts that
+only have certain permissions. These persmissions can limit the
+tables people can see, the operations they can execute or even 
+what databases they have access to.
+
+-- 2. Give a reason for allowing a user to have only SELECT 
+-- privileges on a table
+If you have a table with lots of good data that people want, 
+for example weather data. You want people to be able to access
+the data but you do not want them to be able to edit the data.
+Nobody should be able to change the weather. 
+
+-- 3. Give anexample for having user and views. 
+Back to the weather example, if for some reason
+this data is geo-locked, meaning that you should
+only be able to see the weather in your country, then
+an administrator can set up a view that will only have access
+to the location you are assigned to. This also means they dont
+have to create an entire new table to take care of your needs. 
+
+-- 4. What does the WITH GRANT OPTION clause do?
+If you have created a user with delete permissions
+and the WITH GRAND OPTION that means that they can also give
+that permission to other people.
+
+-- 5. What does FLUSH PRIVILEGES do?
+If you are to update the accessibility of another user and you do 
+not Flush their privileges then their privileges will not take 
+effect until they log out and then log back in.
