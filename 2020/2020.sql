@@ -1,68 +1,219 @@
 -- use database
-use baseball;
+USE baseball;
 
 -- for ease of re running
-drop table if exists analytics;
+DROP TABLE IF EXISTS analytics;
 
 -- create index on baseball so we can create foreign key
 -- do alter table so that if you do already have an index it does not throw an error
 ALTER TABLE
-    batting
+    Batting
 ADD
     INDEX (playerID);
 
+-- new batting table contains no nulls
+DROP VIEW IF EXISTS BattingNoNulls;
+
+CREATE VIEW BattingNoNulls AS
+SELECT
+    playerid,
+    yearID,
+    stint,
+    teamID,
+    lgID,
+    IFNULL(G, 0) AS G,
+    IFNULL(AB, 0) AS AB,
+    IFNULL(R, 0) AS R,
+    IFNULL(H, 0) AS H,
+    IFNULL(2B, 0) AS 2B,
+    IFNULL(3B, 0) AS 3B,
+    IFNULL(HR, 0) AS HR,
+    IFNULL(RBI, 0) AS RBI,
+    IFNULL(SB, 0) AS SB,
+    IFNULL(CS, 0) AS CS,
+    IFNULL(BB, 0) AS BB,
+    IFNULL(SO, 0) AS SO,
+    IFNULL(IBB, 0) AS IBB,
+    IFNULL(HBP, 0) AS HBP,
+    IFNULL(SH, 0) AS SH,
+    IFNULL(SF, 0) AS SF,
+    IFNULL(GIDP, 0) AS GIDP
+FROM
+    Batting;
+
+-- create view for easier RC calculation
+DROP VIEW IF EXISTS RCBatting;
+
+CREATE VIEW RCBatting AS
+SELECT
+    b.playerID,
+    b2.teamID,
+    b2.yearID,
+    b2.stint,
+    RC
+FROM
+    (
+        SELECT
+            playerId,
+            yearid,
+            teamID,
+            stint,
+            -- ifnull only applies if denominator is 0 which surprisignly happends a lot.
+            (
+                (
+                    (
+                        SUM(H) + SUM(BB) - SUM(CS) + SUM(HBP) - SUM(GIDP)
+                    ) * (SUM(H) + SUM(2B) + (2 * SUM(3B)) + (3 * SUM(HR))) + (0.26 * (SUM(BB) - SUM(IBB) + SUM(HBP))) + 0.52 * (SUM(SH) + SUM(SF) + SUM(SB))
+                ) / IF(
+                    (SUM(AB) + SUM(BB) + SUM(HBP) + SUM(SF) + SUM(SH)) = 0,
+                    0.00001,
+                    (SUM(AB) + SUM(BB) + SUM(HBP) + SUM(SF) + SUM(SH))
+                )
+            ) AS RC
+        FROM
+            BattingNoNulls b
+        GROUP BY
+            b.playerID,
+            b.yearID,
+            teamID,
+            stint
+    ) AS b
+    JOIN (
+        SELECT
+            *
+        FROM
+            BattingNoNulls
+    ) AS b2 USING (playerID, yearID, teamID, stint)
+ORDER BY
+    playerID,
+    teamID,
+    yearID,
+    RC;
+
+-- create view for easier RC calculation
+DROP VIEW IF EXISTS RCPitching;
+
+CREATE VIEW RCPitching AS
+SELECT
+    b.playerID,
+    b2.teamID,
+    b2.yearID,
+    b2.stint,
+    RCPitching
+FROM
+    (
+        SELECT
+            playerId,
+            yearid,
+            teamID,
+            stint,
+            -- ifnull only applies if denominator is 0 which surprisignly happends a lot.
+            (
+                (
+                    (
+                        SUM(H) + SUM(BB) + SUM(HBP) - SUM(GIDP)
+                    ) * (SUM(H) + (3 * SUM(HR))) + (0.26 * (SUM(BB) - SUM(IBB) + SUM(HBP))) + 0.52 * (SUM(SH) + SUM(SF))
+                ) / IF(
+                    (SUM(BB) + SUM(HBP) + SUM(SF) + SUM(SH)) = 0,
+                    0.00001,
+                    (SUM(BB) + SUM(HBP) + SUM(SF) + SUM(SH))
+                )
+            ) AS RCPitching
+        FROM
+            PitchingNoNulls b
+        GROUP BY
+            b.playerID,
+            b.yearID,
+            teamID,
+            stint
+    ) AS b
+    JOIN (
+        SELECT
+            *
+        FROM
+            PitchingNoNulls
+    ) AS b2 USING (playerID, yearID, teamID, stint)
+ORDER BY
+    playerID,
+    teamID,
+    yearID,
+    RCPitching;
+
 -- analytics table structure
-create table analytics (
+CREATE TABLE Analytics (
     playerID varchar(9),
-    RC int not null,
-    PARC numeric(10, 6) not null,
-    PARC27 numeric(10, 6) not null,
-    PARCA numeric(10, 6) not null,
-    PRIMARY KEY (playerID),
-    constraint foreign key (playerID) references batting(playerID)
+    yearID int NOT NULL,
+    teamID char(3) NOT NULL,
+    stint int(11) NOT NULL,
+    RC int NOT NULL,
+    PARC numeric(10, 6) NOT NULL,
+    PARC27 numeric(10, 6) NOT NULL,
+    PARCA numeric(10, 6) NOT NULL,
+    PRIMARY KEY (playerID, yearID, teamID, stint),
+    CONSTRAINT FOREIGN KEY (playerID) REFERENCES Batting(playerID)
 ) DEFAULT CHARACTER SET = latin1;
 
-select
-    coalesce(
-        (H + 2B + (2 * 3B) + (3 * HR)) + ((BB + HBP - IBB) * 0.26) / (SH + SF + SB) * 0.52,
-        0
-    ) as RC,
-    playerid
-from
-    batting
-group by
-    playerid
-order by
-    RC desc;
-
-insert into
-    analytics(playerID, RC, PARC, PARC27, PARCA)
-select
+INSERT INTO
+    Analytics(
+        playerID,
+        yearID,
+        teamID,
+        stint,
+        RC,
+        PARC,
+        PARC27,
+        PARCA
+    )
+SELECT
+    playerID,
+    yearID,
+    teamID,
+    stint,
     RC,
     PARC,
-    PARC / 27 as PARC27
-from
+    PARC / 27,
+    0
+FROM
     (
-        select
-            f.RC as RC,
-            f.RC / (t.BPF + 100) / 200 as PARC
-        from
+        SELECT
+            playerID,
+            yearID,
+            teamID,
+            stint,
+            RC,
+            PARC,
+            PARC / 27 AS PARC27,
+            0
+        FROM
             (
-                select
+                SELECT
                     playerID,
-                    coalesce(
-                        (b.H + b.2B + (2 * b.3B) + (3 * b.HR)) + ((b.BB + b.HBP - b.IBB) * 0.26) / (b.SH + b.SF + b.SB) * 0.52,
-                        0
-                    ) as RC
-                from
-                    batting
-                group by
-                    playerID
-            ) as f,
-            teams as t
-    );
-
-select
-    *
-from
-    analytics;
+                    RC AS RC,
+                    RC / (BPF + 100) / 2 AS PARC,
+                    yearID,
+                    teamID,
+                    stint
+                FROM
+                    (
+                        SELECT
+                            *
+                        FROM
+                            (
+                                SELECT
+                                    *
+                                FROM
+                                    RCPitching
+                            ) AS rc
+                            JOIN (
+                                SELECT
+                                    teamID,
+                                    BPF,
+                                    yearID
+                                FROM
+                                    Teams
+                            ) AS t USING(yearID, teamID)
+                    ) AS PARC
+            ) AS PARCA
+    ) AS p
+ORDER BY
+    PARC DESC;
