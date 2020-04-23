@@ -90,50 +90,6 @@ ORDER BY
     yearID,
     RCB;
 
--- create view for easier RC calculation
-DROP VIEW IF EXISTS RCPitching;
-
-CREATE VIEW RCPitching AS
-SELECT
-    b.playerID,
-    b2.teamID,
-    b2.yearID,
-    b2.stint,
-    PARCA
-FROM
-    (
-        SELECT
-            playerId,
-            yearid,
-            teamID,
-            stint,
-            -- ifnull only applies if denominator is 0 which surprisignly happends a lot.
-            (
-                (
-                    (
-                        SUM(H) + SUM(BB) + SUM(HBP) - SUM(GIDP)
-                    ) * (SUM(H) + (3 * SUM(HR))) + (0.26 * (SUM(BB) - SUM(IBB) + SUM(HBP))) + 0.52 * (SUM(SH) + SUM(SF))
-                ) / IF(
-                    (SUM(BB) + SUM(HBP) + SUM(SF) + SUM(SH)) = 0,
-                    0.00001,
-                    (SUM(BB) + SUM(HBP) + SUM(SF) + SUM(SH))
-                )
-            ) AS PARCA
-        FROM
-            PitchingNoNulls b
-        GROUP BY
-            b.playerID,
-            b.yearID,
-            teamID,
-            stint
-    ) AS b
-    JOIN (
-        SELECT
-            *
-        FROM
-            PitchingNoNulls
-    ) AS b2 USING (playerID, yearID, teamID, stint);
-
 -- analytics table structure
 CREATE TABLE Analytics (
     playerID varchar(9),
@@ -144,8 +100,6 @@ CREATE TABLE Analytics (
     -- if a person has ever batted they will have a value
     PARC numeric(10, 6) NOT NULL,
     PARC27 numeric(10, 6) NOT NULL,
-    PARCA numeric(20 , 5) NOT NULL,
-    -- if a person has ever pitched they will have a value I didnt want to do defaults because these values can be + or -
     PRIMARY KEY (playerID, yearID, teamID, stint),
     CONSTRAINT FOREIGN KEY (playerID) REFERENCES Batting(playerID)
 ) DEFAULT CHARACTER SET = latin1;
@@ -158,13 +112,9 @@ INSERT INTO
         stint,
         RC,
         PARC,
-        PARC27,
-        PARCA
+        PARC27
     )
-SELECT
-    playerID, yearID, teamID, stint, RCB, PARC, PARC27, PARCA
-FROM
-    (
+
         SELECT
             playerID,
             yearID,
@@ -215,21 +165,15 @@ FROM
                     ) AS PARCA
             ) AS p
         ORDER BY
-            PARC DESC
-    ) AS q
-    JOIN (
-        SELECT
-            *
-        FROM
-            RCPitching
-    ) AS RCP USING (playerID, teamID, yearID, stint);
-
-ALTER TABLE
-    Batting DROP INDEX playerID_2;
+            PARC DESC;
+    
 
 ALTER TABLE
     Batting DROP INDEX playerID;
     
-    select * from Analytics order by RC desc;
-    
-    select * from Batting where playerID = 'nelsoge01';
+    SELECT 
+    *
+FROM
+    Analytics
+ORDER BY RC DESC;
+
