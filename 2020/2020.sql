@@ -138,7 +138,7 @@ INSERT INTO
                         SELECT
                             playerID,
                             RCB,
-                            RCB / (BPF + 100) / 2 AS PARC,
+                            RCB / (BPF + 100) / 200 AS PARC,
                             yearID,
                             teamID,
                             stint
